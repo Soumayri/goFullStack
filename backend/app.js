@@ -1,10 +1,13 @@
+//Server
 const express = require("express");
 const mongoose = require("mongoose");
+//
 require("dotenv").config({ path: ".env" });
 const path = require("path");
 const mongoUri = process.env.MONGO_URI;
 const bookRoutes = require("./routes/bookRoutes");
 const userRoutes = require("./routes/userRoutes");
+const { log } = require("console");
 
 // Créer une application Express
 const app = express();
@@ -34,8 +37,9 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use("/api/books", bookRoutes);
-app.use("/api/auth", userRoutes);
-app.use("/images", express.static(path.join(__dirname, "images")));
+app.use('/api/books', bookRoutes);
+
+app.use('/api/auth', userRoutes);
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 module.exports = app;

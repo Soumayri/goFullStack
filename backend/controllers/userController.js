@@ -1,88 +1,67 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-require("dotenv").config({ path: ".env.local" });
-const User = require("../models/User");
+const User = require('../models/user.js')
 
-// Regex pour les formats d'emails et de mots de passe
-const emailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const passwordFormat = /^(?=.*\d).{8,}$/;
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+const emailRegex = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-// Fonction pour créer un nouvel utilisateur
-exports.signup = (req, res) => {
-    const errorMessages = [];
+exports.signup = (req, res, next) => {
 
-    // Vérifie le format de l'email
-    if (!emailFormat.test(req.body.email)) {
-        errorMessages.push("Format de l'email invalide.");
-    }
-    // Vérifie le format du mot de passe
-    if (!passwordFormat.test(req.body.password)) {
-        errorMessages.push(
-            "Format du mot de passe invalide. Le mot de passe doit contenir au moins 8 caractères et au moins 1 chiffre."
-        );
-    }
-    // Renvoie l'erreur
-    if (errorMessages.length > 0) {
-        return res.status(400).json({ messages: errorMessages });
-    }
+// Vérifie si les inputs sont conformes aux regEX
+if (!emailRegex.test(req.body.email)) {
+    return res.status(410).json({message:"Email non conforme"})
+}
 
-    // Logique pour créer un nouvel utilisateur
-    bcrypt
-        .hash(req.body.password, 10)
-        .then(hash => {
-            const user = new User({
-                email: req.body.email,
-                password: hash,
-            });
+if(!passwordRegex.test(req.body.password)){
+    return res.status(410).json({message: "Le mot de passe doit contenir au moins 8 catactères, dont une majuscule et un chiffre"})
+}
+
+    // Vérifie si l'utilisateur est déja existant dans la dB
+    User.findOne({email: req.body.email}).then(user => {
+        if(user){
+            return res.status(409).json({message: "Utilisateur déjà existant"})
+        } else {
+            // Enregistre l'utilisateur et hash le mdp
+            bcrypt.hash(req.body.password, 10)
+             .then(hash => {
+                const user = new User({
+                    email: req.body.email,
+                    password: hash
+                })
             user.save()
-                .then(() =>
-                    res.status(201).json({ message: "Utilisateur créé !" })
-                )
-                .catch((error) => res.status(400).json({ error }));
-        })
-        .catch((error) => res.status(500).json({ error }));
-};
+            .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+            .catch(error => res.status(400).json({ error }))
+      })
+      .catch(error => res.status(500).json({ error }))
+        }
+    })
+    
+  }
 
-// Fonction pour se connecter
-exports.login = (req, res) => {
-    // Logique pour se connecter
+exports.login = (req, res, next) => {
     User.findOne({ email: req.body.email })
         .then(user => {
+            // Vérifie si l'email est dans la dB
             if (!user) {
-                return res
-                    .status(401)
-                    .json({ message: "Paire login/mot de passe incorrecte" });
+                return res.status(401).json({ error: `L'adresse email ou le mot de passe est incorrect` })
             }
-            bcrypt
-                .compare(req.body.password, user.password)
-                .then((valid) => {
+            // Vérifie les hash de mdp
+            bcrypt.compare(req.body.password, user.password)
+                .then(valid => {
                     if (!valid) {
-                        return res.status(401).json({
-                            message: "Paire login/mot de passe incorrecte",
-                        });
+                        return res.status(401).json({ error: `L'adresse email ou le mot de passe est incorrect` })
                     }
+                    // Authorise l'authentification et génère un token de 24h
                     res.status(200).json({
                         userId: user._id,
                         token: jwt.sign(
                             { userId: user._id },
-                            process.env.TOKEN_SECRET,
-                            { expiresIn: "24h" }
-                        ),
+                            '3fded1a1944be33223f59341d9dda27e47bfc9173dea95ec89224a54b46c08a1',
+                            { expiresIn: '24h' }
+                        )
                     });
                 })
-                .catch((error) => {
-                    if (error instanceof bcrypt.BCryptError) {
-                        return res.status(401).json({
-                            message:
-                                "Paire login/mot de passe incorrecte",
-                        });
-                    } else {
-                        return res.status(500).json({
-                            message:
-                                "Une erreur est survenue lors de la connexion",
-                        });
-                    }
-                });
+                .catch(error => res.status(500).json({ error }))
         })
-        .catch((error) => res.status(500).json({ error }));
-};
+        .catch(error => res.status(500).json({ error }))
+ }
