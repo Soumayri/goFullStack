@@ -121,7 +121,7 @@
     "node-abi": "^3.40.0",
     "node-addon-api": "^5.1.0",
     "node-fetch": "^2.6.11",
-    "nodemon": "^3.1.4",
+    "nodemon": "^3.1.5",
     "nopt": "^5.0.0",
     "npmlog": "^5.0.1",
     "object-assign": "^4.1.1",

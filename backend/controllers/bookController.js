@@ -4,7 +4,7 @@ const fs = require('fs');
 
 exports.getAllBooks = async (req, res, next) => {
   try {
-    // Renvoi tous les livres
+    
     const books = await Book.find()
     res.status(200).json(books)
   } catch (error) {
@@ -15,7 +15,7 @@ exports.getAllBooks = async (req, res, next) => {
 
 exports.getTopRatedBooks = async (req, res, next) => {
   try {
-    // Renvoi les meilleurs livres 
+    // Send the top Rated Book 
     const topRatedBooks = await Book.find()
       .sort({ averageRating: -1 })
       .limit(3)
@@ -27,7 +27,7 @@ exports.getTopRatedBooks = async (req, res, next) => {
 
 
 exports.getOneBook = async (req, res, next) => {
-  // Renvoi les livres selon l'Id
+  // Send book by Id
   try {
     const book = await Book.findOne({ _id: req.params.id })
     if (book) {
@@ -80,7 +80,7 @@ exports.createBook = async (req, res, next) => {
   }
   }  
 }
-
+// BOOK RATING
 
 exports.addBookRating = async (req, res, next) => {
    // Check that the user has not already rated the book
@@ -106,7 +106,10 @@ exports.addBookRating = async (req, res, next) => {
 
     // Add a new rating to the ratings array of the book
     book.ratings.push({ userId : req.body.userId, grade: req.body.rating })
-
+// Calculate the average Rating
+const totalRatings = book.ratings.length;
+const sumRatings = book.ratings.reduce((acc, rating) => acc + rating.grade, 0);
+book.averageRating = (sumRatings / totalRatings).toFixed(1);
     // Save the book to MongoDB, averageRating will be up to date on save
     await book.save()
     res.status(200).json(book)

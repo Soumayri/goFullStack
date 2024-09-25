@@ -1,9 +1,10 @@
 const User = require('../models/user.js')
-
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const emailRegex = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+const secretToken = process.env.JWT_SECRET_TOKEN;
+
 
 exports.signup = (req, res, next) => {
 
@@ -43,20 +44,20 @@ exports.login = (req, res, next) => {
         .then(user => {
             // Vérifie si l'email est dans la dB
             if (!user) {
-                return res.status(401).json({ error: `L'adresse email ou le mot de passe est incorrect` })
+                return res.status(401).json({ message: `L'adresse email ou le mot de passe est incorrect` })
             }
             // Vérifie les hash de mdp
             bcrypt.compare(req.body.password, user.password)
                 .then(valid => {
                     if (!valid) {
-                        return res.status(401).json({ error: `L'adresse email ou le mot de passe est incorrect` })
+                        return res.status(401).json({ message: `L'adresse email ou le mot de passe est incorrect` })
                     }
                     // Authorise l'authentification et génère un token de 24h
                     res.status(200).json({
                         userId: user._id,
                         token: jwt.sign(
                             { userId: user._id },
-                            '3fded1a1944be33223f59341d9dda27e47bfc9173dea95ec89224a54b46c08a1',
+                            secretToken,
                             { expiresIn: '24h' }
                         )
                     });
