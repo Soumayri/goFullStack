@@ -15,7 +15,7 @@ exports.getAllBooks = async (req, res, next) => {
 
 exports.getTopRatedBooks = async (req, res, next) => {
   try {
-    // Send the top Rated Book 
+     
     const topRatedBooks = await Book.find()
       .sort({ averageRating: -1 })
       .limit(3)
@@ -52,7 +52,7 @@ exports.createBook = async (req, res, next) => {
     return res.status(400).json({ message: 'File missing' })
 
   } else {
-    // Never trust user input
+    
     delete bookObject._id
     delete bookObject._userId
 

@@ -8,7 +8,7 @@ const secretToken = process.env.JWT_SECRET_TOKEN;
 
 exports.signup = (req, res, next) => {
 
-// Vérifie si les inputs sont conformes aux regEX
+// Checks inputs if they match regEx
 if (!emailRegex.test(req.body.email)) {
     return res.status(410).json({message:"Email non conforme"})
 }
