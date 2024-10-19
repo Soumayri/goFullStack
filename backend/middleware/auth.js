@@ -11,11 +11,10 @@ module.exports = (req, res, next) => {
         userId: userId,
      };
     
-    console.log(userId)
-    console.log(decodedToken)
+
     next();
    
      } catch (error) {
-         res.status(401).json({ message : 'problème ici !' });
+         res.status(401).json({ message : error });
      }
 };
