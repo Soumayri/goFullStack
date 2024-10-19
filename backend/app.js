@@ -7,7 +7,7 @@ const path = require("path");
 const mongoUri = process.env.MONGO_URI;
 const bookRoutes = require("./routes/bookRoutes");
 const userRoutes = require("./routes/userRoutes");
-const { log } = require("console");
+
 
 // Créer une application Express
 const app = express();
